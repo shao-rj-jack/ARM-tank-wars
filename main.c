@@ -7,12 +7,16 @@
 #define YMAX 240
 #define BLACK 0x0000
 #define WHITE 0xFFFF
+#define RED 0xF800
+#define GREEN 0x07E0
+#define BLUE 0x001F
 
 //Function prototypes
 void plot_pixel(int x, int y, short int line_color);
 void clear_screen();
 void draw_line(int x0, int y0, int x1, int y1, int color);
 void draw_rect(int x, int y, int color, int radius);
+void draw_ground();
 void swap(int * a, int * b);
 void wait_for_vsync();
 
@@ -111,6 +115,36 @@ void draw_rect(int x, int y, int color, int radius) {
 			plot_pixel(i, j, color);
 		}
 	}
+}
+
+void draw_ground() {
+    int y = 180;
+    for(int x = 0; x < 80; ++x) {
+        draw_line(x, y, x, YMAX - 1, GREEN);
+    }
+    int deltaY = 2;
+    for(int x = 80; x < 100; ++x) {
+        draw_line(x, y, x, YMAX - 1, GREEN);
+        y += deltaY;
+    }
+    deltaY *= -1;
+    for(int x = 100; x < 160; ++x) {
+        draw_line(x, y, x, YMAX - 1, GREEN);
+        y += deltaY;
+    }
+    deltaY *= -1;
+    for(int x = 160; x < 220; ++x) {
+        draw_line(x, y, x, YMAX - 1, GREEN);
+        y += deltaY;
+    }
+    deltaY *= -1;
+    for(int x = 220; x < 240; ++x) {
+        draw_line(x, y, x, YMAX - 1, GREEN);
+        y += deltaY;
+    }
+    for(int x = 240; x < XMAX; ++x) {
+        draw_line(x, y, x, YMAX - 1, GREEN);
+    }
 }
 
 void swap(int * a, int * b) {
