@@ -12,7 +12,7 @@
 void plot_pixel(int x, int y, short int line_color);
 void clear_screen();
 void draw_line(int x0, int y0, int x1, int y1, int color);
-void draw_rect(int x, int y, int color);
+void draw_rect(int x, int y, int color, int radius);
 void swap(int * a, int * b);
 void wait_for_vsync();
 
@@ -38,70 +38,15 @@ int main(void) {
 	*(pixel_ctrl_ptr + 1) = 0xC0000000;
 	pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
 
-	//initialize random numbers
-	srand(time(0));
-
-	//Rectangles are 5x5px. There are 8 of them with 2 position coords
-	int rects[8][2] = {{((double) rand() / RAND_MAX) * (XMAX - 5) + 2, ((double) rand() / RAND_MAX) * (YMAX - 5) + 2},
-					   {((double) rand() / RAND_MAX) * (XMAX - 5) + 2, ((double) rand() / RAND_MAX) * (YMAX - 5) + 2},
-					   {((double) rand() / RAND_MAX) * (XMAX - 5) + 2, ((double) rand() / RAND_MAX) * (YMAX - 5) + 2},
-					   {((double) rand() / RAND_MAX) * (XMAX - 5) + 2, ((double) rand() / RAND_MAX) * (YMAX - 5) + 2},
-					   {((double) rand() / RAND_MAX) * (XMAX - 5) + 2, ((double) rand() / RAND_MAX) * (YMAX - 5) + 2},
-					   {((double) rand() / RAND_MAX) * (XMAX - 5) + 2, ((double) rand() / RAND_MAX) * (YMAX - 5) + 2},
-					   {((double) rand() / RAND_MAX) * (XMAX - 5) + 2, ((double) rand() / RAND_MAX) * (YMAX - 5) + 2},
-					   {((double) rand() / RAND_MAX) * (XMAX - 5) + 2, ((double) rand() / RAND_MAX) * (YMAX - 5) + 2}};
-
-	//Rectangle velocities
-	int velos[8][2] = {{((double) rand() / RAND_MAX) * 2, ((double) rand() / RAND_MAX) * 2},
-					   {((double) rand() / RAND_MAX) * 2, ((double) rand() / RAND_MAX) * 2},
-					   {((double) rand() / RAND_MAX) * 2, ((double) rand() / RAND_MAX) * 2},
-					   {((double) rand() / RAND_MAX) * 2, ((double) rand() / RAND_MAX) * 2},
-					   {((double) rand() / RAND_MAX) * 2, ((double) rand() / RAND_MAX) * 2},
-					   {((double) rand() / RAND_MAX) * 2, ((double) rand() / RAND_MAX) * 2},
-					   {((double) rand() / RAND_MAX) * 2, ((double) rand() / RAND_MAX) * 2},
-					   {((double) rand() / RAND_MAX) * 2, ((double) rand() / RAND_MAX) * 2}};
-
-	//velocities are now 0 or 1
-	//correct 0 to -1
-	for(int rect = 0; rect < 8; ++rect) {
-		if(velos[rect][0] == 0) velos[rect][0] = -1;
-		if(velos[rect][1] == 0) velos[rect][1] = -1;
-	}
-
 	// Main animation loop
 	while(true) {
 		/* Erase any boxes and lines that were drawn in the last iteration */
 		clear_screen();
 
-		//Draw lines
-		draw_line(rects[0][0], rects[0][1], rects[1][0], rects[1][1], WHITE);
-		draw_line(rects[1][0], rects[1][1], rects[2][0], rects[2][1], WHITE);
-		draw_line(rects[2][0], rects[2][1], rects[3][0], rects[3][1], WHITE);
-		draw_line(rects[3][0], rects[3][1], rects[4][0], rects[4][1], WHITE);
-		draw_line(rects[4][0], rects[4][1], rects[5][0], rects[5][1], WHITE);
-		draw_line(rects[5][0], rects[5][1], rects[6][0], rects[6][1], WHITE);
-		draw_line(rects[6][0], rects[6][1], rects[7][0], rects[7][1], WHITE);
-		draw_line(rects[7][0], rects[7][1], rects[0][0], rects[0][1], WHITE);
+		//Do calculations
 
-		for(int rect = 0; rect < 8; ++rect) {
-			int x = rects[rect][0];
-			int y = rects[rect][1];
-
-			//Draw each rectangle
-			draw_rect(x, y, WHITE);
-
-			//check velocities. rectangles are 5x5px so account for that
-			if(x == 2) velos[rect][0] = 1;
-			else if(x == XMAX - 3) velos[rect][0] = -1;
-
-			if(y == 2) velos[rect][1] = 1;
-			else if(y == YMAX - 3) velos[rect][1] = -1;
-
-			//move rectangles
-			rects[rect][0] += velos[rect][0];
-			rects[rect][1] += velos[rect][1];
-		}
-
+		//Draw stuff
+		
 		//delay
 		wait_for_vsync();
 		pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer
@@ -160,9 +105,9 @@ void draw_line(int x0, int y0, int x1, int y1, int color) {
 	}
 }
 
-void draw_rect(int x, int y, int color) {
-	for(int i = x - 2; i <= x + 2; ++i) {
-		for(int j = y - 2; j <= y + 2; ++j) {
+void draw_rect(int x, int y, int color, int radius) {
+	for(int i = x - radius; i <= x + radius; ++i) {
+		for(int j = y - radius; j <= y + radius; ++j) {
 			plot_pixel(i, j, color);
 		}
 	}
