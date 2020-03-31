@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <time.h>
 
-//Constants
+//Color Constants
 #define XMAX 320
 #define YMAX 240
 #define BLACK 0x0000
@@ -11,17 +11,26 @@
 #define GREEN 0x07E0
 #define BLUE 0x001F
 
+//Game State Constants
+#define P1 0 // indicates both player and ...
+#define P2 1 // current turn
+#define move_P1 2
+#define move_P2 3
+#define shoot_P1 4
+#define shoot_P2 5
+
 //Function prototypes
 void plot_pixel(int x, int y, short int line_color);
 void clear_screen();
 void draw_line(int x0, int y0, int x1, int y1, int color);
 void draw_rect(int x, int y, int color, int radius);
 void draw_ground();
+void draw_player(int x, int y, int player, int current_turn, int angle);
 void swap(int * a, int * b);
 void wait_for_vsync();
 
 
-//Global variables
+// Global variables
 volatile int pixel_buffer_start;
 
 int main(void) {
@@ -144,6 +153,21 @@ void draw_ground() {
     }
     for(int x = 240; x < XMAX; ++x) {
         draw_line(x, y, x, YMAX - 1, GREEN);
+    }
+}
+
+void draw_player(int x, int y, int player, int current_turn, int angle) {
+    if(player == P1) {
+        int color = RED;
+        // draws player model facing right
+
+        // draws angle indicator if it's also P1's turn
+    }
+    else if(player == P2) {
+        int color = BLUE;
+        // draws player model facing left
+
+        // draws angle indicator if it's also P2's turn
     }
 }
 
