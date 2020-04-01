@@ -13,12 +13,14 @@
 #define BLUE 0x001F
 
 //Game State Constants
-#define P1 0 // indicates both player and ...
-#define P2 1 // current turn
-#define move_P1 2
-#define move_P2 3
-#define shoot_P1 4
-#define shoot_P2 5
+#define turn_control 0 // indicates if player is controlling his avatar ...
+#define turn_wait 1 // or waiting for animation
+#define P1 2 // indicates both player and ...
+#define P2 3 // current turn
+#define move_P1 4
+#define move_P2 5
+#define shoot_P1 6
+#define shoot_P2 7
 
 //Function prototypes
 void plot_pixel(int x, int y, short int line_color);
@@ -82,7 +84,6 @@ void clear_screen() {
 }
 
 void draw_line(int x0, int y0, int x1, int y1, int color) {
-	
 	bool is_steep = abs(y1 - y0) > abs(x1 - x0);
 	
 	if(is_steep) {
