@@ -21,6 +21,8 @@
 #define move_P2 5
 #define shoot_P1 6
 #define shoot_P2 7
+#define game_pause 8
+#define game_start 9
 
 //Function prototypes
 void plot_pixel(int x, int y, short int line_color);
