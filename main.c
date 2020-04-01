@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <time.h>
+#include <math.h>
 
 //Color Constants
 #define XMAX 320
@@ -157,17 +158,32 @@ void draw_ground() {
 }
 
 void draw_player(int x, int y, int player, int current_turn, int angle) {
+    int color = BLACK;
+    int delta_turret = 0;
+    int player_radius = 3;
+    int turret_radius = 1;
     if(player == P1) {
-        int color = RED;
-        // draws player model facing right
-
-        // draws angle indicator if it's also P1's turn
+        color = RED;
+        delta_turret = 4; // turret faces right
     }
     else if(player == P2) {
-        int color = BLUE;
-        // draws player model facing left
+        color = BLUE;
+        delta_turret = -4; // turret faces left
+    }
 
-        // draws angle indicator if it's also P2's turn
+    // draws player model
+    draw_rect(x, y, color, player_radius); // main body
+    draw_rect(x + delta_turret, y, color, turret_radius); // turret
+
+    // draws angle indicator if it is players turn
+    if(current_turn == player) {
+        int length = 30; // length of angle indicator
+        int deltaX = length * cos(angle);
+        if(delta_turret < 0) {
+            deltaX *= -1; // changes direction based on turret direction
+        }
+        int deltaY = length * sin(angle) * -1;
+        draw_line(x, y, x + deltaX, y + deltaY, color);
     }
 }
 
