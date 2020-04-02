@@ -98,7 +98,7 @@ int main(void) {
 		//Do calculations
 
 		//Draw stuff
-		
+
 		//delay
 		wait_for_vsync();
 		pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer
@@ -110,6 +110,7 @@ int main(void) {
 
 //Plots a single pixel
 void plot_pixel(int x, int y, short int line_color) {
+	if(x < 0 || x >= XMAX || y < 0 || y >= YMAX) return;
 	*(short int *)(pixel_buffer_start + (y << 10) + (x << 1)) = line_color;
 }
 
@@ -163,9 +164,33 @@ void draw_line(int x0, int y0, int x1, int y1, int color) {
 }
 
 
-//Draws a circle at (x, y) with radius r
-void draw_circle(int x, int y, int color, int radius) {
-	return;
+//Error helper function
+int calc_error(int x, int y, int r) {
+	return ((x*x + y*y - r*r + 1 + (y << 1)) << 1) + (1 - (x << 1));
+}
+
+
+//Draws a filled circle at (x, y) with radius r
+//https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
+void draw_circle(int _x, int _y, int color, int r) {
+	int x = r;
+	int y = 0;
+
+	//Starting positions
+	draw_line(x + _x, y + _y, x + _x, -y + _y, color);
+	draw_line(y + _y, x + _x, y + _y, -x + _x, color);
+	draw_line(-x + _x, y + _y, -x + _x, -y + _y, color);
+	draw_line(-y + _y, x + _x, -y + _y, -x + _x, color);
+
+	//Draw until circle slope switches
+	while(x >= y) {
+		if(calc_error(x, y, r) > 0) x--;
+		y++;
+		draw_line(x + _x, y + _y, x + _x, -y + _y, color);
+		draw_line(y + _y, x + _x, y + _y, -x + _x, color);
+		draw_line(-x + _x, y + _y, -x + _x, -y + _y, color);
+		draw_line(-y + _y, x + _x, -y + _y, -x + _x, color);
+	}
 }
 
 
@@ -173,9 +198,7 @@ void draw_circle(int x, int y, int color, int radius) {
 void draw_rect(int x, int y, int color, int radius) {
 	for(int i = x - radius; i <= x + radius; ++i) {
 		for(int j = y - radius; j <= y + radius; ++j) {
-			if(i < XMAX && i >= 0 && j < YMAX && j >= 0) {
-				plot_pixel(i, j, color);
-			}
+			plot_pixel(i, j, color);
 		}
 	}
 }
