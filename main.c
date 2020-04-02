@@ -30,6 +30,7 @@ void clear_screen();
 void draw_line(int x0, int y0, int x1, int y1, int color);
 void draw_rect(int x, int y, int color, int radius);
 void draw_circle(int x, int y, int color, int radius);
+void init_ground();
 void draw_ground();
 void draw_player(int x, int y, int player, int current_turn, int angle);
 void swap(int * a, int * b);
@@ -39,6 +40,7 @@ void HEX_PS2(char b1, char b2, char b3);
 
 // Global variables
 volatile int pixel_buffer_start;
+bool ground[XMAX][YMAX];
 
 int main(void) {
 	volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
@@ -54,6 +56,7 @@ int main(void) {
 	pixel_buffer_start = *pixel_ctrl_ptr;
 
 	clear_screen(); // pixel_buffer_start points to the pixel buffer
+	init_ground();
 
 	/* set back pixel buffer to start of SDRAM memory */
 	*(pixel_ctrl_ptr + 1) = 0xC0000000;
@@ -71,8 +74,8 @@ int main(void) {
 
 	// Main animation loop
 	while(true) {
-		/* Erase any boxes and lines that were drawn in the last iteration */
-		clear_screen();
+		/* Erase last iteration */
+		draw_ground();
 
 		//keyboard
 		PS2_data = *(PS2_ptr); // read the Data register in the PS/2 port
@@ -204,35 +207,104 @@ void draw_rect(int x, int y, int color, int radius) {
 }
 
 
-//Draws the playing field
-void draw_ground() {
-    int y = 180;
+//Initialize the playing field with a piecewise function
+void init_ground() {
+	int y = 180;
     for(int x = 0; x < 80; ++x) {
-        draw_line(x, y, x, YMAX - 1, GREEN);
+        for(int j = 0; j < y; ++j) {
+        	ground[x][j] = false;
+        }
+        for(int j = y; j < YMAX; ++j) {
+        	ground[x][j] = true;
+        }
     }
     int deltaY = 2;
     for(int x = 80; x < 100; ++x) {
-        draw_line(x, y, x, YMAX - 1, GREEN);
+        for(int j = 0; j < y; ++j) {
+        	ground[x][j] = false;
+        }
+        for(int j = y; j < YMAX; ++j) {
+        	ground[x][j] = true;
+        }
         y += deltaY;
     }
     deltaY *= -1;
     for(int x = 100; x < 160; ++x) {
-        draw_line(x, y, x, YMAX - 1, GREEN);
+        for(int j = 0; j < y; ++j) {
+        	ground[x][j] = false;
+        }
+        for(int j = y; j < YMAX; ++j) {
+        	ground[x][j] = true;
+        }
         y += deltaY;
     }
     deltaY *= -1;
     for(int x = 160; x < 220; ++x) {
-        draw_line(x, y, x, YMAX - 1, GREEN);
+        for(int j = 0; j < y; ++j) {
+        	ground[x][j] = false;
+        }
+        for(int j = y; j < YMAX; ++j) {
+        	ground[x][j] = true;
+        }
         y += deltaY;
     }
     deltaY *= -1;
     for(int x = 220; x < 240; ++x) {
-        draw_line(x, y, x, YMAX - 1, GREEN);
+        for(int j = 0; j < y; ++j) {
+        	ground[x][j] = false;
+        }
+        for(int j = y; j < YMAX; ++j) {
+        	ground[x][j] = true;
+        }
         y += deltaY;
     }
     for(int x = 240; x < XMAX; ++x) {
-        draw_line(x, y, x, YMAX - 1, GREEN);
+        for(int j = 0; j < y; ++j) {
+        	ground[x][j] = false;
+        }
+        for(int j = y; j < YMAX; ++j) {
+        	ground[x][j] = true;
+        }
     }
+}
+
+
+//Draws the playing field
+void draw_ground() {
+    for(int x = 0; x < XMAX; ++x) {
+    	for(int y = 0; y < YMAX; ++y) {
+    		if(ground[x][y]) plot_pixel(x, y, GREEN);
+    		else plot_pixel(x, y, BLACK);
+    	}
+    }
+
+    // int y = 180;
+    // for(int x = 0; x < 80; ++x) {
+    //     draw_line(x, y, x, YMAX - 1, GREEN);
+    // }
+    // int deltaY = 2;
+    // for(int x = 80; x < 100; ++x) {
+    //     draw_line(x, y, x, YMAX - 1, GREEN);
+    //     y += deltaY;
+    // }
+    // deltaY *= -1;
+    // for(int x = 100; x < 160; ++x) {
+    //     draw_line(x, y, x, YMAX - 1, GREEN);
+    //     y += deltaY;
+    // }
+    // deltaY *= -1;
+    // for(int x = 160; x < 220; ++x) {
+    //     draw_line(x, y, x, YMAX - 1, GREEN);
+    //     y += deltaY;
+    // }
+    // deltaY *= -1;
+    // for(int x = 220; x < 240; ++x) {
+    //     draw_line(x, y, x, YMAX - 1, GREEN);
+    //     y += deltaY;
+    // }
+    // for(int x = 240; x < XMAX; ++x) {
+    //     draw_line(x, y, x, YMAX - 1, GREEN);
+    // }
 }
 
 
