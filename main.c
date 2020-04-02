@@ -29,6 +29,7 @@ void plot_pixel(int x, int y, short int line_color);
 void clear_screen();
 void draw_line(int x0, int y0, int x1, int y1, int color);
 void draw_rect(int x, int y, int color, int radius);
+void draw_circle(int x, int y, int color, int radius);
 void draw_ground();
 void draw_player(int x, int y, int player, int current_turn, int angle);
 void swap(int * a, int * b);
@@ -58,17 +59,15 @@ int main(void) {
 	*(pixel_ctrl_ptr + 1) = 0xC0000000;
 	pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
 
-	/***************************************/
-	
+	//set up keyboard
 	int PS2_data, RVALID;
+
 	//last 3 bytes send from the ps2 keyboard
 	//byte3 is the most recent and byte1 is the oldest
 	char byte1 = 0, byte2 = 0, byte3 = 0;
 
 	// PS/2 mouse needs to be reset (must be already plugged in)
 	*(PS2_ptr) = 0xFF; // reset
-
-	/****************************************/
 
 	// Main animation loop
 	while(true) {
@@ -80,11 +79,13 @@ int main(void) {
 		RVALID = PS2_data & 0x8000; // extract the RVALID field
 
 		if (RVALID) {
-			/* shift the next data byte into the display */
+			// shift the most recent data
 			byte1 = byte2;
 			byte2 = byte3;
 			byte3 = PS2_data & 0xFF;
-			HEX_PS2(byte1, byte2, byte3);
+
+			HEX_PS2(byte1, byte2, byte3); //temp display of recent bytes
+
 			if ((byte2 == (char)0xAA) && (byte3 == (char)0x00)) {
 				// mouse inserted; initialize sending of data
 				*(PS2_ptr) = 0xF4;
@@ -106,10 +107,14 @@ int main(void) {
 	
 }
 
+
+//Plots a single pixel
 void plot_pixel(int x, int y, short int line_color) {
 	*(short int *)(pixel_buffer_start + (y << 10) + (x << 1)) = line_color;
 }
 
+
+//Clears the screen to black
 void clear_screen() {
 	for(int x = 0; x < XMAX; ++x) {
 		for(int y = 0; y < YMAX; ++y) {
@@ -118,6 +123,8 @@ void clear_screen() {
 	}
 }
 
+
+//Draws a line from (x0, y0) to (x1, y1)
 void draw_line(int x0, int y0, int x1, int y1, int color) {
 	bool is_steep = abs(y1 - y0) > abs(x1 - x0);
 	
@@ -155,14 +162,26 @@ void draw_line(int x0, int y0, int x1, int y1, int color) {
 	}
 }
 
+
+//Draws a circle at (x, y) with radius r
+void draw_circle(int x, int y, int color, int radius) {
+	return;
+}
+
+
+//Draws a rectangle at (x,y) with radius r
 void draw_rect(int x, int y, int color, int radius) {
 	for(int i = x - radius; i <= x + radius; ++i) {
 		for(int j = y - radius; j <= y + radius; ++j) {
-			plot_pixel(i, j, color);
+			if(i < XMAX && i >= 0 && j < YMAX && j >= 0) {
+				plot_pixel(i, j, color);
+			}
 		}
 	}
 }
 
+
+//Draws the playing field
 void draw_ground() {
     int y = 180;
     for(int x = 0; x < 80; ++x) {
@@ -193,6 +212,8 @@ void draw_ground() {
     }
 }
 
+
+//Draws the specified player at indicated position
 void draw_player(int x, int y, int player, int current_turn, int angle) {
     int color = BLACK;
     int delta_turret = 0;
@@ -223,12 +244,16 @@ void draw_player(int x, int y, int player, int current_turn, int angle) {
     }
 }
 
+
+//Swaps two numbers
 void swap(int * a, int * b) {
 	int temp = *a;
 	*a = *b;
 	*b = temp;
 }
 
+
+//Waits for the screen to advance one frame
 void wait_for_vsync() {
 	volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
 
@@ -238,7 +263,7 @@ void wait_for_vsync() {
 }
 
 /****************************************************************************************
-* Subroutine to show a string of HEX data on the HEX displays
+* (Temp) Subroutine to show a string of HEX data on the HEX displays
 ****************************************************************************************/
 void HEX_PS2(char b1, char b2, char b3) {
 	volatile int * HEX3_HEX0_ptr = (int *)0xFF200020;
