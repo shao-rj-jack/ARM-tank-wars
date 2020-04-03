@@ -23,6 +23,7 @@
 #define shoot_P2 7
 #define game_pause 8
 #define game_start 9
+#define game_over 10
 
 //Function prototypes
 void plot_pixel(int x, int y, short int line_color);
@@ -126,10 +127,113 @@ int main(void) {
                 current_player = rand() % 2 + 2; // randomly chooses starting player (2 or 3)
             }
         }
+        else if(game_state == game_start) {
+            // draw players
+            draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
+            draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
 
-		//Do calculations
+            game_state = current_player; // sets the turn to the current player
+        }
+        else if(game_state == P1 || game_state == P2) { // player initial turn
+            // check for any directional input
+            if(byte3 == (char)0x75 || byte3 == (char)0x6B || byte3 == (char)0x72 || byte3 == (char)0x74) {
+                game_state += 2; // change to corresponding player movement game state
+            }
+            // draw players
+            draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
+            draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
+        }
+        else if(game_state == move_P1) {
+            if(byte2 != (char)0xF0) { // checks that key was not released
+                if(byte3 == (char)0x6B) {
+                    player_1.pos_x -= 1; // move left
+                }
+                else if(byte3 == (char)0x74) {
+                    player_1.pos_x += 1; // move right
+                }
+                else if(byte3 == (char)0x72) {
+                    player_1.angle -= 1; // angle turret down
+                }
+                else if(byte3 == (char)0x75) {
+                    player_1.angle += 1; // angle turret up
+                }
+            }
+            // check for ground around the player to change y position
 
-		//Draw stuff
+            if(byte3 == (char)0x29) { // check if shoot button was pressed
+                game_state = shoot_P1;
+            }
+
+            draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
+            draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
+        }
+        else if(game_state == move_P2) {
+            if(byte2 != (char)0xF0) { // checks that key was not released
+                if(byte3 == (char)0x6B) {
+                    player_2.pos_x -= 1; // move left
+                }
+                else if(byte3 == (char)0x74) {
+                    player_2.pos_x += 1; // move right
+                }
+                else if(byte3 == (char)0x72) {
+                    player_2.angle -= 1; // angle turret down
+                }
+                else if(byte3 == (char)0x75) {
+                    player_2.angle += 1; // angle turret up
+                }
+            }
+            // check for ground around the player to change y position
+
+            if(byte3 == (char)0x29) { // check if shoot button was pressed
+                game_state = shoot_P2;
+            }
+
+            // draw players
+            draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
+            draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
+        }
+        else if(game_state == shoot_P1) {
+            // shoot projectile
+
+//            if(projectile landed) {
+//                // reform land
+//                // calculate new health
+//                // move players
+//                // check for winner
+//            }
+//            if(done and no winner) { // switch players
+//                current_player = P2;
+//                game_state = P2;
+//            }
+//            else if(winner) {
+//                game_state = game_over;
+//            }
+        }
+        else if(game_state == shoot_P2) {
+            // shoot projectile
+
+//            if(projectile landed) {
+//                // reform land
+//                // calculate new health
+//                // move players
+//                // check for winner
+//            }
+//            if(done and no winner) { // switch players
+//                current_player = P1;
+//                game_state = P1;
+//            }
+//            else if(winner) {
+//                game_state = game_over;
+//            }
+        }
+        else if(game_state == game_over) {
+            // checks which player won
+            // displays congrats
+
+            if(byte3 == (char)0x29) { // press spacebar to reset game
+                game_state = game_pause;
+            }
+        }
 
 		//delay
 		wait_for_vsync();
