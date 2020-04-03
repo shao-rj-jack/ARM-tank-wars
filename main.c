@@ -38,6 +38,13 @@ void wait_for_vsync();
 //temp
 void HEX_PS2(char b1, char b2, char b3);
 
+// player data structure definition
+struct player_data {
+    int pos_x;
+    int pos_y;
+    int angle;
+};
+
 // Global variables
 volatile int pixel_buffer_start;
 bool ground[XMAX][YMAX];
@@ -45,7 +52,21 @@ bool ground[XMAX][YMAX];
 int main(void) {
 	volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
 	volatile int * PS2_ptr = 		(int *)0xFF200100;
-	
+
+	int game_state = game_pause; // initialize game state to be paused
+	int current_player;
+
+	// initializes player data
+	struct player_data player_1;
+	player_1.pos_x = 75;
+	player_1.pos_y = 175;
+	player_1.angle = 0;
+
+	struct player_data player_2;
+	player_2.pos_x = 245;
+	player_2.pos_y = 175;
+	player_2.angle = 0;
+
 	/* set front pixel buffer to start of FPGA On-chip memory */
 	*(pixel_ctrl_ptr + 1) = 0xC8000000; // first store the address in the back buffer
 
@@ -93,10 +114,18 @@ int main(void) {
 				// mouse inserted; initialize sending of data
 				*(PS2_ptr) = 0xF4;
 			}
-			if(byte3 == (char)0x74) {
-				//move right
-			}
 		}
+
+        if(game_state == game_pause) {
+            // plot both players in starting position and no angle indicator
+            draw_player(player_1.pos_x, player_1.pos_y, P1, 0, player_1.angle);
+            draw_player(player_2.pos_x, player_2.pos_y, P2, 0, player_2.angle);
+
+            if(byte3 == (char)0x29) { // press spacebar to start game
+                game_state = game_start;
+                current_player = rand() % 2 + 2; // randomly chooses starting player (2 or 3)
+            }
+        }
 
 		//Do calculations
 
@@ -277,34 +306,6 @@ void draw_ground() {
     		else plot_pixel(x, y, BLACK);
     	}
     }
-
-    // int y = 180;
-    // for(int x = 0; x < 80; ++x) {
-    //     draw_line(x, y, x, YMAX - 1, GREEN);
-    // }
-    // int deltaY = 2;
-    // for(int x = 80; x < 100; ++x) {
-    //     draw_line(x, y, x, YMAX - 1, GREEN);
-    //     y += deltaY;
-    // }
-    // deltaY *= -1;
-    // for(int x = 100; x < 160; ++x) {
-    //     draw_line(x, y, x, YMAX - 1, GREEN);
-    //     y += deltaY;
-    // }
-    // deltaY *= -1;
-    // for(int x = 160; x < 220; ++x) {
-    //     draw_line(x, y, x, YMAX - 1, GREEN);
-    //     y += deltaY;
-    // }
-    // deltaY *= -1;
-    // for(int x = 220; x < 240; ++x) {
-    //     draw_line(x, y, x, YMAX - 1, GREEN);
-    //     y += deltaY;
-    // }
-    // for(int x = 240; x < XMAX; ++x) {
-    //     draw_line(x, y, x, YMAX - 1, GREEN);
-    // }
 }
 
 
@@ -328,7 +329,10 @@ void draw_player(int x, int y, int player, int current_turn, int angle) {
     draw_rect(x + delta_turret, y, color, turret_radius); // turret
 
     // draws angle indicator if it is players turn
-    if(current_turn == player) {
+    if(current_turn == 0) { // game hasnt started, no angle indicators
+        return;
+    }
+    else if(current_turn == player) {
         int length = 30; // length of angle indicator
         int deltaX = length * cos(angle);
         if(delta_turret < 0) {
