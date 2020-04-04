@@ -25,6 +25,21 @@
 #define game_start 9
 #define game_over 10
 
+//Keyboard Constants
+#define BREAK (char)0xF0
+#define SPACEBAR 	(int)0x00290000
+#define UP_ARROW 	(int)0x00E07500
+#define DOWN_ARROW 	(int)0x00E07200
+#define RIGHT_ARROW (int)0x00E07400
+#define LEFT_ARROW 	(int)0x00E06B00
+#define ESCAPE 		(int)0x00760000
+#define B_SPACEBAR 	  (int)0x00F02900
+#define B_UP_ARROW    (int)0x00E0F075
+#define B_DOWN_ARROW  (int)0x00E0F072
+#define B_RIGHT_ARROW (int)0x00E0F074
+#define B_LEFT_ARROW  (int)0x00E0F06B
+#define B_ESCAPE 	  (int)0x00F07600
+
 //Function prototypes
 void plot_pixel(int x, int y, short int line_color);
 void clear_screen();
@@ -34,16 +49,28 @@ void draw_circle(int x, int y, int color, int radius);
 void init_ground();
 void draw_ground();
 void draw_player(int x, int y, int player, int current_turn, int angle);
+void advance_key(char * b1, char * b2, char * b3, int PS2_data);
+int read_key();
 void swap(int * a, int * b);
 void wait_for_vsync();
 //temp
-void HEX_PS2(char b1, char b2, char b3);
+void HEX_PS2(int key);
 
 // player data structure definition
-struct player_data {
+struct Player_data {
     int pos_x;
     int pos_y;
     int angle;
+};
+
+// key data structure definition
+struct Pressed_keys {
+	bool spacebar;
+	bool up_arrow;
+	bool down_arrow;
+	bool right_arrow;
+	bool left_arrow;
+	bool escape;
 };
 
 // Global variables
@@ -58,15 +85,27 @@ int main(void) {
 	int current_player;
 
 	// initializes player data
-	struct player_data player_1;
+	struct Player_data player_1;
 	player_1.pos_x = 75;
 	player_1.pos_y = 175;
 	player_1.angle = 0;
 
-	struct player_data player_2;
+	struct Player_data player_2;
 	player_2.pos_x = 245;
 	player_2.pos_y = 175;
 	player_2.angle = 0;
+
+	//set up keyboard
+	int key;
+
+	// initialize key data
+	struct Pressed_keys keys;
+	keys.spacebar = false;
+	keys.up_arrow = false;
+	keys.down_arrow = false;
+	keys.right_arrow = false;
+	keys.left_arrow = false;
+	keys.escape = false;
 
 	/* set front pixel buffer to start of FPGA On-chip memory */
 	*(pixel_ctrl_ptr + 1) = 0xC8000000; // first store the address in the back buffer
@@ -84,45 +123,37 @@ int main(void) {
 	*(pixel_ctrl_ptr + 1) = 0xC0000000;
 	pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
 
-	//set up keyboard
-	int PS2_data, RVALID;
-
-	//last 3 bytes send from the ps2 keyboard
-	//byte3 is the most recent and byte1 is the oldest
-	char byte1 = 0, byte2 = 0, byte3 = 0;
-
-	// PS/2 mouse needs to be reset (must be already plugged in)
-	*(PS2_ptr) = 0xFF; // reset
-
 	// Main animation loop
 	while(true) {
 		/* Erase last iteration */
 		draw_ground();
 
-		//keyboard
-		PS2_data = *(PS2_ptr); // read the Data register in the PS/2 port
-		RVALID = PS2_data & 0x8000; // extract the RVALID field
-
-		if (RVALID) {
-			// shift the most recent data
-			byte1 = byte2;
-			byte2 = byte3;
-			byte3 = PS2_data & 0xFF;
-
-			HEX_PS2(byte1, byte2, byte3); //temp display of recent bytes
-
-			if ((byte2 == (char)0xAA) && (byte3 == (char)0x00)) {
-				// mouse inserted; initialize sending of data
-				*(PS2_ptr) = 0xF4;
-			}
+		//keyboard, read the entire FIFO buffer
+		int last_key = 0;
+		while((key = read_key()) != 0) {
+			if(key == SPACEBAR) keys.spacebar = true;
+			else if(key == B_SPACEBAR) keys.spacebar = false;
+			else if(key == UP_ARROW) keys.up_arrow = true;
+			else if(key == B_UP_ARROW) keys.up_arrow = false;
+			else if(key == DOWN_ARROW) keys.down_arrow = true;
+			else if(key == B_DOWN_ARROW) keys.down_arrow = false;
+			else if(key == RIGHT_ARROW) keys.right_arrow = true;
+			else if(key == B_RIGHT_ARROW) keys.right_arrow = false;
+			else if(key == LEFT_ARROW) keys.left_arrow = true;
+			else if(key == B_LEFT_ARROW) keys.left_arrow = false;
+			else if(key == ESCAPE) keys.escape = true;
+			else if(key == B_ESCAPE) keys.escape = false;
+			last_key = key;
 		}
+		HEX_PS2(last_key); //temp display of recent bytes
+		
 
         if(game_state == game_pause) {
             // plot both players in starting position and no angle indicator
             draw_player(player_1.pos_x, player_1.pos_y, P1, 0, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, 0, player_2.angle);
 
-            if(byte3 == (char)0x29) { // press spacebar to start game
+            if(keys.spacebar) { // press spacebar to start game
                 game_state = game_start;
                 current_player = rand() % 2 + 2; // randomly chooses starting player (2 or 3)
             }
@@ -136,7 +167,7 @@ int main(void) {
         }
         else if(game_state == P1 || game_state == P2) { // player initial turn
             // check for any directional input
-            if(byte3 == (char)0x75 || byte3 == (char)0x6B || byte3 == (char)0x72 || byte3 == (char)0x74) {
+            if(keys.up_arrow || keys.down_arrow || keys.right_arrow || keys.left_arrow) {
                 game_state += 2; // change to corresponding player movement game state
             }
             // draw players
@@ -144,23 +175,22 @@ int main(void) {
             draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
         }
         else if(game_state == move_P1) {
-            if(byte2 != (char)0xF0) { // checks that key was not released
-                if(byte3 == (char)0x6B) {
-                    player_1.pos_x -= 1; // move left
-                }
-                else if(byte3 == (char)0x74) {
-                    player_1.pos_x += 1; // move right
-                }
-                else if(byte3 == (char)0x72) {
-                    player_1.angle -= 1; // angle turret down
-                }
-                else if(byte3 == (char)0x75) {
-                    player_1.angle += 1; // angle turret up
-                }
+            if(keys.left_arrow) {
+                player_1.pos_x -= 1; // move left
             }
+            else if(keys.right_arrow) {
+                player_1.pos_x += 1; // move right
+            }
+            else if(keys.down_arrow) {
+                player_1.angle -= 1; // angle turret down
+            }
+            else if(keys.up_arrow) {
+                player_1.angle += 1; // angle turret up
+            }
+            
             // check for ground around the player to change y position
 
-            if(byte3 == (char)0x29) { // check if shoot button was pressed
+            if(keys.spacebar) { // check if shoot button was pressed
                 game_state = shoot_P1;
             }
 
@@ -168,23 +198,22 @@ int main(void) {
             draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
         }
         else if(game_state == move_P2) {
-            if(byte2 != (char)0xF0) { // checks that key was not released
-                if(byte3 == (char)0x6B) {
-                    player_2.pos_x -= 1; // move left
-                }
-                else if(byte3 == (char)0x74) {
-                    player_2.pos_x += 1; // move right
-                }
-                else if(byte3 == (char)0x72) {
-                    player_2.angle -= 1; // angle turret down
-                }
-                else if(byte3 == (char)0x75) {
-                    player_2.angle += 1; // angle turret up
-                }
+            if(keys.left_arrow) {
+                player_2.pos_x -= 1; // move left
             }
+            else if(keys.right_arrow) {
+                player_2.pos_x += 1; // move right
+            }
+            else if(keys.down_arrow) {
+                player_2.angle -= 1; // angle turret down
+            }
+            else if(keys.up_arrow) {
+                player_2.angle += 1; // angle turret up
+            }
+
             // check for ground around the player to change y position
 
-            if(byte3 == (char)0x29) { // check if shoot button was pressed
+            if(keys.spacebar) { // check if shoot button was pressed
                 game_state = shoot_P2;
             }
 
@@ -230,7 +259,7 @@ int main(void) {
             // checks which player won
             // displays congrats
 
-            if(byte3 == (char)0x29) { // press spacebar to reset game
+            if(keys.spacebar) { // press spacebar to reset game
                 game_state = game_pause;
             }
         }
@@ -448,6 +477,62 @@ void draw_player(int x, int y, int player, int current_turn, int angle) {
 }
 
 
+//Advances the keyboard data. b3 is the most recent data
+// byetes [b1 b2 b3] form a PS/2 keyboard code
+void advance_key(char * b1, char * b2, char * b3, int PS2_data) {
+	int RVALID = PS2_data & 0x8000; // extract the RVALID field
+
+	if (RVALID) {
+		// shift the most recent data
+		*b1 = *b2;
+		*b2 = *b3;
+		*b3 = PS2_data & 0xFF;
+	}
+}
+
+
+//Reads one key from the PS/2 keyboard
+int read_key() {
+	volatile int * PS2_ptr = (int *)0xFF200100;
+	char byte1 = 0, byte2 = 0, byte3 = 0;
+	int key = 0;
+
+	int PS2_data = *(PS2_ptr); // read the Data register in the PS/2 port
+	advance_key(&byte1, &byte2, &byte3, PS2_data);
+
+	if(byte3 == (char)0xE0) { //there are more bytes of data
+		PS2_data = *(PS2_ptr); // read the Data register in the PS/2 port
+		advance_key(&byte1, &byte2, &byte3, PS2_data);
+
+		if(byte3 == BREAK) { //there is one more byte of data
+			PS2_data = *(PS2_ptr); // read the Data register in the PS/2 port
+			advance_key(&byte1, &byte2, &byte3, PS2_data);
+		} else {
+			//Shift data to the left
+			byte1 = byte2;
+			byte2 = byte3;
+			byte3 = 0;
+		}
+	} else if(byte3 == BREAK) { //there is one more byte of data
+		PS2_data = *(PS2_ptr); // read the Data register in the PS/2 port
+		advance_key(&byte1, &byte2, &byte3, PS2_data);
+
+		//Shift data to the left
+		byte1 = byte2;
+		byte2 = byte3;
+		byte3 = 0;
+	} else {
+		//Shift data to the left
+		byte1 = byte3;
+		byte2 = 0;
+		byte3 = 0;
+	}
+
+	key = (byte1 << 16) | (byte2 << 8) | byte3;
+	return key;
+}
+
+
 //Swaps two numbers
 void swap(int * a, int * b) {
 	int temp = *a;
@@ -468,7 +553,7 @@ void wait_for_vsync() {
 /****************************************************************************************
 * (Temp) Subroutine to show a string of HEX data on the HEX displays
 ****************************************************************************************/
-void HEX_PS2(char b1, char b2, char b3) {
+void HEX_PS2(int key) {
 	volatile int * HEX3_HEX0_ptr = (int *)0xFF200020;
 	volatile int * HEX5_HEX4_ptr = (int *)0xFF200030;
 	
@@ -483,7 +568,7 @@ void HEX_PS2(char b1, char b2, char b3) {
 	unsigned char code;
 	int i;
 
-	shift_buffer = (b1 << 16) | (b2 << 8) | b3;
+	shift_buffer = key;
 
 	for (i = 0; i < 6; ++i) {
 		nibble = shift_buffer & 0x0000000F; // character is in rightmost nibble
