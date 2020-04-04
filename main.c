@@ -98,7 +98,7 @@ int main(void) {
 	//set up keyboard
 	int key;
 
-	// initialize key data
+	// initialize edge capture of key data
 	struct Pressed_keys keys;
 	keys.spacebar = false;
 	keys.up_arrow = false;
@@ -129,20 +129,15 @@ int main(void) {
 		draw_ground();
 
 		//keyboard, read the entire FIFO buffer
+		//Capture the rising edges of the keys
 		int last_key = 0;
 		while((key = read_key()) != 0) {
 			if(key == SPACEBAR) keys.spacebar = true;
-			else if(key == B_SPACEBAR) keys.spacebar = false;
 			else if(key == UP_ARROW) keys.up_arrow = true;
-			else if(key == B_UP_ARROW) keys.up_arrow = false;
 			else if(key == DOWN_ARROW) keys.down_arrow = true;
-			else if(key == B_DOWN_ARROW) keys.down_arrow = false;
 			else if(key == RIGHT_ARROW) keys.right_arrow = true;
-			else if(key == B_RIGHT_ARROW) keys.right_arrow = false;
 			else if(key == LEFT_ARROW) keys.left_arrow = true;
-			else if(key == B_LEFT_ARROW) keys.left_arrow = false;
 			else if(key == ESCAPE) keys.escape = true;
-			else if(key == B_ESCAPE) keys.escape = false;
 			last_key = key;
 		}
 		HEX_PS2(last_key); //temp display of recent bytes
@@ -263,6 +258,14 @@ int main(void) {
                 game_state = game_pause;
             }
         }
+
+        //reset key values
+        keys.spacebar = false;
+        keys.up_arrow = false;
+		keys.down_arrow = false;
+		keys.right_arrow = false;
+		keys.left_arrow = false;
+		keys.escape = false;
 
 		//delay
 		wait_for_vsync();
