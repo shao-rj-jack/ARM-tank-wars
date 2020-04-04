@@ -3,9 +3,10 @@
 #include <time.h>
 #include <math.h>
 
-//Color Constants
 #define XMAX 320
 #define YMAX 240
+
+//Color Constants
 #define BLACK 0x0000
 #define WHITE 0xFFFF
 #define RED 0xF800
@@ -88,15 +89,18 @@ int main(void) {
 	struct Player_data player_1;
 	player_1.pos_x = 75;
 	player_1.pos_y = 175;
-	player_1.angle = 0;
+	player_1.angle = 30;
 
 	struct Player_data player_2;
 	player_2.pos_x = 245;
 	player_2.pos_y = 175;
-	player_2.angle = 0;
+	player_2.angle = 30;
 
 	//set up keyboard
 	int key;
+
+	//Enable interrupts
+	//*(PS2_ptr + 1) = 0x1;
 
 	// initialize edge capture of key data
 	struct Pressed_keys keys;
@@ -177,10 +181,14 @@ int main(void) {
                 player_1.pos_x += 1; // move right
             }
             else if(keys.down_arrow) {
-                player_1.angle -= 1; // angle turret down
+                player_1.angle += 1; // angle turret down
+
+                if(player_1.angle > 30) player_1.angle = 30; //max angle is equal to line length
             }
             else if(keys.up_arrow) {
-                player_1.angle += 1; // angle turret up
+                player_1.angle -= 1; // angle turret up
+
+                if(player_1.angle < -30) player_1.angle = -30; //max angle is equal to line length
             }
             
             // check for ground around the player to change y position
@@ -200,10 +208,14 @@ int main(void) {
                 player_2.pos_x += 1; // move right
             }
             else if(keys.down_arrow) {
-                player_2.angle -= 1; // angle turret down
+                player_2.angle += 1; // angle turret down
+
+                if(player_2.angle > 30) player_2.angle = 30; //max angle is equal to line length
             }
             else if(keys.up_arrow) {
-                player_2.angle += 1; // angle turret up
+                player_2.angle -= 1; // angle turret up
+
+                if(player_2.angle < -30) player_2.angle = -30; //max angle is equal to line length
             }
 
             // check for ground around the player to change y position
@@ -470,11 +482,13 @@ void draw_player(int x, int y, int player, int current_turn, int angle) {
     }
     else if(current_turn == player) {
         int length = 30; // length of angle indicator
-        int deltaX = length * cos(angle);
+        int deltaX = angle;
+        int deltaY = -sqrt(length * length - deltaX * deltaX);
+
         if(delta_turret < 0) {
             deltaX *= -1; // changes direction based on turret direction
         }
-        int deltaY = length * sin(angle) * -1;
+        
         draw_line(x, y, x + deltaX, y + deltaY, color);
     }
 }
