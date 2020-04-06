@@ -68,7 +68,7 @@ void draw_circle(int x, int y, int color, int radius);
 void init_ground();
 void draw_ground();
 void draw_player(int x, int y, int player, int current_turn, int angle);
-void draw_score(struct Player_data player_1, struct Player_data player_2, int current_turn);
+void draw_score(int health_p1, int health_p2, int current_turn);
 void draw_border(int player);
 void advance_key(char * b1, char * b2, char * b3, int PS2_data);
 int read_key();
@@ -156,7 +156,7 @@ int main(void) {
             draw_player(player_1.pos_x, player_1.pos_y, P1, 0, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, 0, player_2.angle);
 
-            draw_score(player_1, player_2, 0); // draw score board
+            draw_score(player_1.health, player_2.health, 0); // draw score board
 
             if(keys.spacebar) { // press spacebar to start game
                 game_state = game_start;
@@ -177,22 +177,22 @@ int main(void) {
             }
             draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
-            draw_score(player_1, player_2, game_state);
+            draw_score(player_1.health, player_2.health, game_state);
         }
         else if(game_state == move_P1) {
             if(keys.left_arrow) {
-                player_1.pos_x -= 1; // move left
+                player_1.pos_x -= 2; // move left
             }
             else if(keys.right_arrow) {
-                player_1.pos_x += 1; // move right
+                player_1.pos_x += 2; // move right
             }
             else if(keys.down_arrow) {
-                player_1.angle += 1; // angle turret down
+                player_1.angle += 2; // angle turret down
 
                 if(player_1.angle > 30) player_1.angle = 30; //max angle is equal to line length
             }
             else if(keys.up_arrow) {
-                player_1.angle -= 1; // angle turret up
+                player_1.angle -= 2; // angle turret up
 
                 if(player_1.angle < -30) player_1.angle = -30; //max angle is equal to line length
             }
@@ -212,21 +212,22 @@ int main(void) {
 
             draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
+            draw_score(player_1.health, player_2.health, P1);
         }
         else if(game_state == move_P2) {
             if(keys.left_arrow) {
-                player_2.pos_x -= 1; // move left
+                player_2.pos_x -= 2; // move left
             }
             else if(keys.right_arrow) {
-                player_2.pos_x += 1; // move right
+                player_2.pos_x += 2; // move right
             }
             else if(keys.down_arrow) {
-                player_2.angle += 1; // angle turret down
+                player_2.angle += 2; // angle turret down
 
                 if(player_2.angle > 30) player_2.angle = 30; //max angle is equal to line length
             }
             else if(keys.up_arrow) {
-                player_2.angle -= 1; // angle turret up
+                player_2.angle -= 2; // angle turret up
 
                 if(player_2.angle < -30) player_2.angle = -30; //max angle is equal to line length
             }
@@ -244,9 +245,9 @@ int main(void) {
                 game_state = shoot_P2;
             }
 
-            // draw players
             draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
+            draw_score(player_1.health, player_2.health, game_state);
         }
         else if(game_state == shoot_P1) {
             // shoot projectile
@@ -514,7 +515,7 @@ void draw_player(int x, int y, int player, int current_turn, int angle) {
 }
 
 // draws the score board at the top of the screen
-void draw_score(struct Player_data player_1, struct Player_data player_2, int current_turn) {
+void draw_score(int health_p1, int health_p2, int current_turn) {
     // border width is 5
     int space = 8; // space between each health bar
     int width = 14; // width of each health bar
@@ -523,7 +524,7 @@ void draw_score(struct Player_data player_1, struct Player_data player_2, int cu
     int start_x = 5 + space; // starting x position of first health bar
     int start_y = 5 + space;
     int color = RED;
-    for(int i = 0; i < player_1.health; ++i) {
+    for(int i = 0; i < health_p1; ++i) {
         for(int j = start_x + (width + space) * i; j < start_x + (width + space) * i + width; ++j) {
             for(int k = start_y; k < start_y + height; ++k) {
                 plot_pixel(j, k, color);
@@ -533,7 +534,7 @@ void draw_score(struct Player_data player_1, struct Player_data player_2, int cu
 
     start_x = 192 + 5 + space; // starting x position of first player 1 health bar
     color = BLUE;
-    for(int i = 0; i < player_2.health; ++i) {
+    for(int i = 0; i < health_p2; ++i) {
         for(int j = start_x + (width + space) * i; j < start_x + (width + space) * i + width; ++j) {
             for(int k = start_y; k < start_y + height; ++k) {
                 plot_pixel(j, k, color);
