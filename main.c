@@ -41,6 +41,24 @@
 #define B_LEFT_ARROW  (int)0x00E0F06B
 #define B_ESCAPE 	  (int)0x00F07600
 
+// player data structure definition
+struct Player_data {
+    int pos_x;
+    int pos_y;
+    int angle;
+    int health;
+};
+
+// key data structure definition
+struct Pressed_keys {
+    bool spacebar;
+    bool up_arrow;
+    bool down_arrow;
+    bool right_arrow;
+    bool left_arrow;
+    bool escape;
+};
+
 //Function prototypes
 void plot_pixel(int x, int y, short int line_color);
 void clear_screen();
@@ -50,29 +68,13 @@ void draw_circle(int x, int y, int color, int radius);
 void init_ground();
 void draw_ground();
 void draw_player(int x, int y, int player, int current_turn, int angle);
+void draw_score(struct Player_data player_1, struct Player_data player_2, int current_turn);
 void advance_key(char * b1, char * b2, char * b3, int PS2_data);
 int read_key();
 void swap(int * a, int * b);
 void wait_for_vsync();
 //temp
 void HEX_PS2(int key);
-
-// player data structure definition
-struct Player_data {
-    int pos_x;
-    int pos_y;
-    int angle;
-};
-
-// key data structure definition
-struct Pressed_keys {
-	bool spacebar;
-	bool up_arrow;
-	bool down_arrow;
-	bool right_arrow;
-	bool left_arrow;
-	bool escape;
-};
 
 // Global variables
 volatile int pixel_buffer_start;
@@ -90,11 +92,13 @@ int main(void) {
 	player_1.pos_x = 75;
 	player_1.pos_y = 175;
 	player_1.angle = 30;
+	player_1.health = 5;
 
 	struct Player_data player_2;
 	player_2.pos_x = 245;
 	player_2.pos_y = 175;
 	player_2.angle = 30;
+	player_2.health = 5;
 
 	//set up keyboard
 	int key;
@@ -152,6 +156,8 @@ int main(void) {
             draw_player(player_1.pos_x, player_1.pos_y, P1, 0, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, 0, player_2.angle);
 
+            draw_score(player_1, player_2, 0); // draw score board
+
             if(keys.spacebar) { // press spacebar to start game
                 game_state = game_start;
                 current_player = rand() % 2 + 2; // randomly chooses starting player (2 or 3)
@@ -169,9 +175,9 @@ int main(void) {
             if(keys.up_arrow || keys.down_arrow || keys.right_arrow || keys.left_arrow) {
                 game_state += 2; // change to corresponding player movement game state
             }
-            // draw players
             draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
+            draw_score(player_1, player_2, game_state);
         }
         else if(game_state == move_P1) {
             if(keys.left_arrow) {
@@ -493,6 +499,35 @@ void draw_player(int x, int y, int player, int current_turn, int angle) {
     }
 }
 
+// draws the score board at the top of the screen
+void draw_score(struct Player_data player_1, struct Player_data player_2, int current_turn) {
+    int space = 8; // space between each health bar
+    int width = 14; // width of each health bar
+    int height = 30; // height of each health bar
+
+    int start_x = 5 + space; // starting x position of first health bar
+    int start_y = 5 + space;
+    int color = RED;
+    for(int i = 0; i < player_1.health; ++i) {
+        for(int j = start_x + (width + space) * i; j < start_x + (width + space) * i + width; ++j) {
+            for(int k = start_y; k < start_y + height; ++k) {
+                plot_pixel(j, k, color);
+            }
+        }
+    }
+
+    start_x = 192 + 5 + space; // starting x position of first player 1 health bar
+    color = BLUE;
+    for(int i = 0; i < player_2.health; ++i) {
+        for(int j = start_x + (width + space) * i; j < start_x + (width + space) * i + width; ++j) {
+            for(int k = start_y; k < start_y + height; ++k) {
+                plot_pixel(j, k, color);
+            }
+        }
+    }
+
+    // draw border(s)
+}
 
 //Advances the keyboard data. b3 is the most recent data
 // byetes [b1 b2 b3] form a PS/2 keyboard code
