@@ -69,6 +69,7 @@ void init_ground();
 void draw_ground();
 void draw_player(int x, int y, int player, int current_turn, int angle);
 void draw_score(struct Player_data player_1, struct Player_data player_2, int current_turn);
+void draw_border(int player);
 void advance_key(char * b1, char * b2, char * b3, int PS2_data);
 int read_key();
 void swap(int * a, int * b);
@@ -501,6 +502,7 @@ void draw_player(int x, int y, int player, int current_turn, int angle) {
 
 // draws the score board at the top of the screen
 void draw_score(struct Player_data player_1, struct Player_data player_2, int current_turn) {
+    // border width is 5
     int space = 8; // space between each health bar
     int width = 14; // width of each health bar
     int height = 30; // height of each health bar
@@ -527,6 +529,42 @@ void draw_score(struct Player_data player_1, struct Player_data player_2, int cu
     }
 
     // draw border(s)
+    if(current_turn == 0) {
+        draw_border(P1);
+        draw_border(P2);
+    }
+    else {
+        draw_border(current_turn);
+    }
+}
+
+// function that draws scoreboard borders
+void draw_border(int player) {
+    int color, x_start;
+    int width = 128;
+    int height = 60;
+    int border_width = 5;
+    if(player == P1) {
+        color = RED;
+        x_start = 0;
+    }
+    else if(player == P2) {
+        color = BLUE;
+        x_start = 192;
+    }
+
+    for(int i = x_start; i < x_start + width; ++i) {
+        for(int j = 0; j < height; ++j) {
+            if(i < x_start + border_width || i >= x_start + width - border_width) {
+                plot_pixel(i, j, color);
+            }
+            else {
+                if(j < border_width || j >= height - border_width) {
+                    plot_pixel(i, j, color);
+                }
+            }
+        }
+    }
 }
 
 //Advances the keyboard data. b3 is the most recent data
