@@ -70,6 +70,7 @@ void draw_ground();
 void draw_player(int x, int y, int player, int current_turn, int angle);
 void draw_score(int health_p1, int health_p2, int current_turn);
 void draw_border(int player);
+void draw_timer(int time);
 void advance_key(char * b1, char * b2, char * b3, int PS2_data);
 int read_key();
 void swap(int * a, int * b);
@@ -152,11 +153,10 @@ int main(void) {
 		HEX_PS2(last_key); //temp display of recent bytes
 
         if(game_state == game_pause) {
-            // plot both players in starting position and no angle indicator
             draw_player(player_1.pos_x, player_1.pos_y, P1, 0, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, 0, player_2.angle);
-
-            draw_score(player_1.health, player_2.health, 0); // draw score board
+            draw_score(player_1.health, player_2.health, 0);
+            draw_timer(4);
 
             if(keys.spacebar) { // press spacebar to start game
                 game_state = game_start;
@@ -581,6 +581,21 @@ void draw_border(int player) {
     }
 }
 
+// draws the timer at the top middle of the screen
+void draw_timer(int time) {
+    int height = 6; // height of each individual segment of timer
+    int color = WHITE;
+    int y_start = 60;
+    int x_start = 128;
+    int x_end = 192;
+
+    for(int i = x_start; i < x_end; ++i) {
+        for(int j = y_start; j > y_start - time * height; --j) {
+            plot_pixel(i, j, color);
+        }
+    }
+}
+
 //Advances the keyboard data. b3 is the most recent data
 // byetes [b1 b2 b3] form a PS/2 keyboard code
 void advance_key(char * b1, char * b2, char * b3, int PS2_data) {
@@ -593,7 +608,6 @@ void advance_key(char * b1, char * b2, char * b3, int PS2_data) {
 		*b3 = PS2_data & 0xFF;
 	}
 }
-
 
 //Reads one key from the PS/2 keyboard
 int read_key() {
@@ -635,7 +649,6 @@ int read_key() {
 	key = (byte1 << 16) | (byte2 << 8) | byte3;
 	return key;
 }
-
 
 //Swaps two numbers
 void swap(int * a, int * b) {
