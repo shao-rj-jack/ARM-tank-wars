@@ -9,8 +9,5 @@ to be loaded onto DE1-SoC board and used with PS/2 keyboard
 - Animation of the projectile
   - Animate the movement (Y Parabola + const X direction movement)
 - Animation of the explosions + removal of ground
-- Movement of players on slopes
-- Health information on the top of the screen
-  - (Just draw rectangles)
-  - Also draw letters like "P1"
 - Finish game states to polish the game
+- Allow for aiming downwards
