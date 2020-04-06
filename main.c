@@ -150,7 +150,6 @@ int main(void) {
 			last_key = key;
 		}
 		HEX_PS2(last_key); //temp display of recent bytes
-		
 
         if(game_state == game_pause) {
             // plot both players in starting position and no angle indicator
@@ -199,6 +198,13 @@ int main(void) {
             }
             
             // check for ground around the player to change y position
+            while(ground[player_1.pos_x][player_1.pos_y + 2]) { // check if there is ground for the player to ascend (player radius is 3 to check 2 down)
+                player_1.pos_y -= 1; // move up in screen
+            }
+
+            while(!ground[player_1.pos_x][player_1.pos_y + 3]) { // check if there is no ground beneath the player
+                player_1.pos_y += 1; // move down in screen
+            }
 
             if(keys.spacebar) { // check if shoot button was pressed
                 game_state = shoot_P1;
@@ -226,6 +232,13 @@ int main(void) {
             }
 
             // check for ground around the player to change y position
+            while(ground[player_2.pos_x][player_2.pos_y + 2]) { // check if there is ground for the player to ascend (player radius is 3 to check 2 down)
+                player_2.pos_y -= 1; // move up in screen
+            }
+
+            while(!ground[player_2.pos_x][player_2.pos_y + 3]) { // check if there is no ground beneath the player
+                player_2.pos_y += 1; // move down in screen
+            }
 
             if(keys.spacebar) { // check if shoot button was pressed
                 game_state = shoot_P2;
