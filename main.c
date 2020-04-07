@@ -234,6 +234,8 @@ int main(void) {
             }
 
             if(keys.spacebar) { // check if shoot button was pressed
+                time = 10; // reset time
+                *timer_ptr_control = 0; // stop timer
                 game_state = shoot_P1;
             }
 
@@ -283,6 +285,8 @@ int main(void) {
             }
 
             if(keys.spacebar) { // check if shoot button was pressed
+                time = 10; // reset time
+                *timer_ptr_control = 0; // stop timer
                 game_state = shoot_P2;
             }
 
@@ -348,6 +352,7 @@ int main(void) {
         	draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
             draw_score(player_1.health, player_2.health, game_state);
+            draw_timer(time);
             draw_rect(bullet.pos_x, bullet.pos_y, RED, 1);
         }
         else if(game_state == shoot_P2) {
@@ -393,6 +398,7 @@ int main(void) {
         	draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
             draw_score(player_1.health, player_2.health, game_state);
+            draw_timer(time);
             draw_rect(bullet.pos_x, bullet.pos_y, BLUE, 1);
         }
         else if(game_state == game_over) {
