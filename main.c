@@ -49,6 +49,16 @@ struct Player_data {
     int health;
 };
 
+// bullet data structure definition
+struct Bullet {
+	int pos_x;
+	int pos_y;
+	int vel_x;
+	int vel_y;
+	int accel_y;
+	short int color;
+};
+
 // key data structure definition
 struct Pressed_keys {
     bool spacebar;
@@ -101,6 +111,17 @@ int main(void) {
 	player_2.pos_y = 175;
 	player_2.angle = 30;
 	player_2.health = 5;
+
+	// initialize bullet
+	struct Bullet bullet;
+	bullet.pos_x = 0;
+	bullet.pos_y = 0;
+	bullet.vel_x = 0;
+	bullet.vel_y = 0;
+	bullet.accel_y = 5;
+	bullet.color = BLACK;
+
+	bool init_bullet = false;
 
 	//set up keyboard
 	int key;
@@ -174,6 +195,8 @@ int main(void) {
             // check for any directional input
             if(keys.up_arrow || keys.down_arrow || keys.right_arrow || keys.left_arrow) {
                 game_state += 2; // change to corresponding player movement game state
+            } else if(keys.spacebar) {
+            	game_state += 4; // change to corresponding player shooting game state
             }
             draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
@@ -252,29 +275,70 @@ int main(void) {
         else if(game_state == shoot_P1) {
             // shoot projectile
 
-//            if(projectile landed) {
-//                // reform land
-//                // calculate new health
-//                // move players
-//                // check for winner
-//            }
-//            if(done and no winner) { // switch players
-//                current_player = P2;
-//                game_state = P2;
-//            }
-//            else if(winner) {
-//                game_state = game_over;
-//            }
+            if(!init_bullet) {
+            	bullet.color = RED;
+	        	bullet.pos_x = player_1.pos_x;
+	        	bullet.pos_y = player_1.pos_y;
+	        	bullet.vel_y = -sqrt(30*30 - player_1.angle * player_1.angle);
+	        	bullet.accel_y = 5;
+
+	        	if(player_1.angle > 0) bullet.vel_x = player_1.angle;
+	        	else if(player_1.angle == 0) bullet.vel_x = 0;
+	        	else  bullet.vel_x = -player_1.angle;
+
+	        	init_bullet = true;
+            } else {
+            	bullet.pos_x += bullet.vel_x;
+            	bullet.pos_y += bullet.vel_y;
+            	bullet.vel_y += bullet.accel_y;
+        	}
+
+
+            if(ground[bullet.pos_x][bullet.pos_y]) {
+               // reform land
+               // calculate new health
+               // move players
+               // check for winner
+            }
+           // if(done and no winner) { // switch players
+           //     current_player = P2;
+           //     game_state = P2;
+           // }
+           // else if(winner) {
+           //     game_state = game_over;
+           // }
+
+        	draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
+            draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
+            draw_score(player_1.health, player_2.health, game_state);
+            draw_rect(bullet.pos_x, bullet.pos_y, RED, 3);
         }
         else if(game_state == shoot_P2) {
             // shoot projectile
+        	if(!init_bullet) {
+            	bullet.color = BLUE;
+	        	bullet.pos_x = player_2.pos_x;
+	        	bullet.pos_y = player_2.pos_y;
+	        	bullet.vel_y = -sqrt(30*30 - player_2.angle * player_2.angle);
+	        	bullet.accel_y = 5;
 
-//            if(projectile landed) {
-//                // reform land
-//                // calculate new health
-//                // move players
-//                // check for winner
-//            }
+	        	if(player_2.angle > 0) bullet.vel_x = -player_2.angle;
+	        	else if(player_2.angle == 0) bullet.vel_x = 0;
+	        	else  bullet.vel_x = player_2.angle;
+
+	        	init_bullet = true;
+            } else {
+            	bullet.pos_x += bullet.vel_x;
+            	bullet.pos_y += bullet.vel_y;
+            	bullet.vel_y += bullet.accel_y;
+        	}
+
+            if(ground[bullet.pos_x][bullet.pos_y]) {
+               // reform land
+               // calculate new health
+               // move players
+               // check for winner
+            }
 //            if(done and no winner) { // switch players
 //                current_player = P1;
 //                game_state = P1;
@@ -282,6 +346,10 @@ int main(void) {
 //            else if(winner) {
 //                game_state = game_over;
 //            }
+        	draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
+            draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
+            draw_score(player_1.health, player_2.health, game_state);
+            draw_rect(bullet.pos_x, bullet.pos_y, BLUE, 3);
         }
         else if(game_state == game_over) {
             // checks which player won
@@ -558,11 +626,11 @@ void draw_border(int player) {
     int width = 128;
     int height = 60;
     int border_width = 5;
-    if(player == P1) {
+    if(player % 2 == 0) {
         color = RED;
         x_start = 0;
     }
-    else if(player == P2) {
+    else if(player % 2 == 1) {
         color = BLUE;
         x_start = 192;
     }
