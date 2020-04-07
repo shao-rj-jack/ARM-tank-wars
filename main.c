@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdbool.h>
-#include <time.h>
 #include <math.h>
 
 #define XMAX 320
@@ -94,7 +93,6 @@ bool ground[XMAX][YMAX];
 
 int main(void) {
 	volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
-	volatile int * PS2_ptr = 		(int *)0xFF200100;
 
 	int game_state = game_pause; // initialize game state to be paused
 	int current_player;
@@ -123,11 +121,16 @@ int main(void) {
 
 	bool init_bullet = false;
 
+	// setup timer
+	int time = 10;
+    volatile int * timer_ptr = (int *)0xFFFEC600;
+    *timer_ptr = 200000000; // load 1 second time into
+    volatile int * timer_ptr_control = (int *)0xFFFEC608;
+    *timer_ptr_control = 0; // load 0 into control register
+    volatile int * timer_ptr_status = (int *)0xFFFEC60C;
+
 	//set up keyboard
 	int key;
-
-	//Enable interrupts
-	//*(PS2_ptr + 1) = 0x1;
 
 	// initialize edge capture of key data
 	struct Pressed_keys keys;
@@ -177,7 +180,7 @@ int main(void) {
             draw_player(player_1.pos_x, player_1.pos_y, P1, 0, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, 0, player_2.angle);
             draw_score(player_1.health, player_2.health, 0);
-            draw_timer(4);
+            draw_timer(time);
 
             if(keys.spacebar) { // press spacebar to start game
                 game_state = game_start;
@@ -201,6 +204,7 @@ int main(void) {
             draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
             draw_score(player_1.health, player_2.health, game_state);
+            draw_timer(time);
         }
         else if(game_state == move_P1) {
             if(keys.left_arrow) {
@@ -233,9 +237,23 @@ int main(void) {
                 game_state = shoot_P1;
             }
 
+            *timer_ptr_control = 3; // enable timer
+            if(*timer_ptr_status == 1) { // check status register
+                if(time > 0) time -= 1; // decrement time
+                else if(time == 0) { // countdown is over
+                    time = 10; // reset time
+                    *timer_ptr_control = 0; // stop timer
+                    // switch players
+                    current_player = P2;
+                    game_state = P2;
+                }
+                *timer_ptr_status = 1; // write 1 pack into status register to reset
+            }
+
             draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
             draw_score(player_1.health, player_2.health, P1);
+            draw_timer(time);
         }
         else if(game_state == move_P2) {
             if(keys.left_arrow) {
@@ -268,9 +286,23 @@ int main(void) {
                 game_state = shoot_P2;
             }
 
+            *timer_ptr_control = 3; // enable timer
+            if(*timer_ptr_status == 1) { // check status register
+                if(time > 0) time -= 1; // decrement time
+                else if(time == 0) { // countdown is over
+                    time = 10; // reset time
+                    *timer_ptr_control = 0; // stop timer
+                    // switch players
+                    current_player = P1;
+                    game_state = P1;
+                }
+                *timer_ptr_status = 1; // write 1 pack into status register to reset
+            }
+
             draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
             draw_score(player_1.health, player_2.health, game_state);
+            draw_timer(time);
         }
         else if(game_state == shoot_P1) {
             // shoot projectile
