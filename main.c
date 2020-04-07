@@ -279,12 +279,12 @@ int main(void) {
             	bullet.color = RED;
 	        	bullet.pos_x = player_1.pos_x;
 	        	bullet.pos_y = player_1.pos_y;
-	        	bullet.vel_y = -sqrt(30*30 - player_1.angle * player_1.angle);
-	        	bullet.accel_y = 5;
+	        	bullet.vel_y = -sqrt(30*30 - player_1.angle * player_1.angle) * 0.25;
+	        	bullet.accel_y = 1;
 
-	        	if(player_1.angle > 0) bullet.vel_x = player_1.angle;
+	        	if(player_1.angle > 0) bullet.vel_x = player_1.angle >> 2;
 	        	else if(player_1.angle == 0) bullet.vel_x = 0;
-	        	else  bullet.vel_x = -player_1.angle;
+	        	else  bullet.vel_x = -player_1.angle >> 2;
 
 	        	init_bullet = true;
             } else {
@@ -293,25 +293,30 @@ int main(void) {
             	bullet.vel_y += bullet.accel_y;
         	}
 
-
-            if(ground[bullet.pos_x][bullet.pos_y]) {
-               // reform land
-               // calculate new health
-               // move players
-               // check for winner
-            }
-           // if(done and no winner) { // switch players
-           //     current_player = P2;
-           //     game_state = P2;
-           // }
-           // else if(winner) {
-           //     game_state = game_over;
-           // }
+        	if(bullet.pos_x < 0 || bullet.pos_x >= XMAX || bullet.pos_y >= YMAX) {
+        		init_bullet = false;
+        	}
+        	else if(bullet.pos_y >= 0) {
+        		if(ground[bullet.pos_x][bullet.pos_y]) {
+	                // reform land
+	                // calculate new health
+	                // move players
+	                // check for winner
+	            	init_bullet = false;
+	            }
+	            // if(done and no winner) { // switch players
+	            //     current_player = P2;
+	            //     game_state = P2;
+	            // }
+	            // else if(winner) {
+	            //     game_state = game_over;
+	            // }
+        	}
 
         	draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
             draw_score(player_1.health, player_2.health, game_state);
-            draw_rect(bullet.pos_x, bullet.pos_y, RED, 3);
+            draw_rect(bullet.pos_x, bullet.pos_y, RED, 1);
         }
         else if(game_state == shoot_P2) {
             // shoot projectile
@@ -319,12 +324,12 @@ int main(void) {
             	bullet.color = BLUE;
 	        	bullet.pos_x = player_2.pos_x;
 	        	bullet.pos_y = player_2.pos_y;
-	        	bullet.vel_y = -sqrt(30*30 - player_2.angle * player_2.angle);
-	        	bullet.accel_y = 5;
+	        	bullet.vel_y = -sqrt(30*30 - player_2.angle * player_2.angle) * 0.25;
+	        	bullet.accel_y = 1;
 
-	        	if(player_2.angle > 0) bullet.vel_x = -player_2.angle;
+	        	if(player_2.angle > 0) bullet.vel_x = -player_2.angle >> 2;
 	        	else if(player_2.angle == 0) bullet.vel_x = 0;
-	        	else  bullet.vel_x = player_2.angle;
+	        	else  bullet.vel_x = player_2.angle >> 2;
 
 	        	init_bullet = true;
             } else {
@@ -333,23 +338,30 @@ int main(void) {
             	bullet.vel_y += bullet.accel_y;
         	}
 
-            if(ground[bullet.pos_x][bullet.pos_y]) {
-               // reform land
-               // calculate new health
-               // move players
-               // check for winner
-            }
-//            if(done and no winner) { // switch players
-//                current_player = P1;
-//                game_state = P1;
-//            }
-//            else if(winner) {
-//                game_state = game_over;
-//            }
+            if(bullet.pos_x < 0 || bullet.pos_x >= XMAX || bullet.pos_y >= YMAX) {
+        		init_bullet = false;
+        	}
+        	else if(bullet.pos_y >= 0) {
+        		if(ground[bullet.pos_x][bullet.pos_y]) {
+	                // reform land
+	                // calculate new health
+	                // move players
+	                // check for winner
+	            	init_bullet = false;
+	            }
+	            // if(done and no winner) { // switch players
+	            //     current_player = P2;
+	            //     game_state = P2;
+	            // }
+	            // else if(winner) {
+	            //     game_state = game_over;
+	            // }
+        	}
+
         	draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
             draw_score(player_1.health, player_2.health, game_state);
-            draw_rect(bullet.pos_x, bullet.pos_y, BLUE, 3);
+            draw_rect(bullet.pos_x, bullet.pos_y, BLUE, 1);
         }
         else if(game_state == game_over) {
             // checks which player won
