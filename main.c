@@ -11,6 +11,7 @@
 #define RED 0xF800
 #define GREEN 0x07E0
 #define BLUE 0x001F
+#define ORANGE 0xFBE0
 
 //Game State Constants
 #define turn_control 0 // indicates if player is controlling his avatar ...
@@ -73,7 +74,8 @@ void plot_pixel(int x, int y, short int line_color);
 void clear_screen();
 void draw_line(int x0, int y0, int x1, int y1, int color);
 void draw_rect(int x, int y, int color, int radius);
-void draw_circle(int x, int y, int color, int radius);
+void draw_explosion(int x, int y, int color, int radius);
+void draw_explosion_line(int x0, int y0, int x1, int y1, int color);
 void init_ground();
 void draw_ground();
 void draw_player(int x, int y, int player, int current_turn, int angle);
@@ -120,6 +122,8 @@ int main(void) {
 	bullet.color = BLACK;
 
 	bool init_bullet = false;
+	bool init_explosion = false;
+	int explosion_hold = 10; // hold explosion graphics for 10 frames
 
 	// setup timer
 	int time = 10;
@@ -223,7 +227,7 @@ int main(void) {
 
                 if(player_1.angle < -30) player_1.angle = -30; //max angle is equal to line length
             }
-            
+
             // check for ground around the player to change y position
             while(ground[player_1.pos_x][player_1.pos_y + 2]) { // check if there is ground for the player to ascend (player radius is 3 to check 2 down)
                 player_1.pos_y -= 1; // move up in screen
@@ -366,7 +370,7 @@ int main(void) {
 
 	        	if(player_2.angle > 0) bullet.vel_x = -player_2.angle >> 2;
 	        	else if(player_2.angle == 0) bullet.vel_x = 0;
-	        	else  bullet.vel_x = player_2.angle >> 2;
+	        	else bullet.vel_x = player_2.angle >> 2;
 
 	        	init_bullet = true;
             } else {
@@ -380,7 +384,23 @@ int main(void) {
         	}
         	else if(bullet.pos_y >= 0) {
         		if(ground[bullet.pos_x][bullet.pos_y]) {
-	                // reform land
+        		    bullet.vel_x = 0;
+        		    bullet.vel_y = 0;
+        		    bullet.accel_y = 0;
+	                if(!init_explosion) {
+                        draw_explosion(bullet.pos_x, bullet.pos_y, ORANGE, 10);
+                        init_explosion = true;
+	                }
+	                else {
+	                    explosion_hold -= 1;
+	                    if(explosion_hold == 0) {
+	                        explosion_hold = 10;
+                            draw_explosion(bullet.pos_x, bullet.pos_y, BLACK, 10);
+	                        init_explosion = false;
+	                        game_state = game_pause; // temp for testing
+	                    }
+	                }
+
 	                // calculate new health
 	                // move players
 	                // check for winner
@@ -423,7 +443,7 @@ int main(void) {
 		pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer
 	}
 
-	
+
 }
 
 
@@ -447,7 +467,7 @@ void clear_screen() {
 //Draws a line from (x0, y0) to (x1, y1)
 void draw_line(int x0, int y0, int x1, int y1, int color) {
 	bool is_steep = abs(y1 - y0) > abs(x1 - x0);
-	
+
 	if(is_steep) {
 		swap(&x0, &y0);
 		swap(&x1, &y1);
@@ -491,27 +511,67 @@ int calc_error(int x, int y, int r) {
 
 //Draws a filled circle at (x, y) with radius r
 //https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
-void draw_circle(int _x, int _y, int color, int r) {
+//Updates ground state as well
+void draw_explosion(int _x, int _y, int color, int r) {
 	int x = r;
 	int y = 0;
 
 	//Starting positions
-	draw_line(x + _x, y + _y, x + _x, -y + _y, color);
-	draw_line(y + _y, x + _x, y + _y, -x + _x, color);
-	draw_line(-x + _x, y + _y, -x + _x, -y + _y, color);
-	draw_line(-y + _y, x + _x, -y + _y, -x + _x, color);
+	draw_explosion_line(x + _x, y + _y, x + _x, -y + _y, color);
+	draw_explosion_line(y + _y, x + _x, y + _y, -x + _x, color);
+	draw_explosion_line(-x + _x, y + _y, -x + _x, -y + _y, color);
+	draw_explosion_line(-y + _y, x + _x, -y + _y, -x + _x, color);
 
 	//Draw until circle slope switches
 	while(x >= y) {
 		if(calc_error(x, y, r) > 0) x--;
 		y++;
-		draw_line(x + _x, y + _y, x + _x, -y + _y, color);
-		draw_line(y + _y, x + _x, y + _y, -x + _x, color);
-		draw_line(-x + _x, y + _y, -x + _x, -y + _y, color);
-		draw_line(-y + _y, x + _x, -y + _y, -x + _x, color);
+        draw_explosion_line(x + _x, y + _y, x + _x, -y + _y, color);
+        draw_explosion_line(y + _y, x + _x, y + _y, -x + _x, color);
+        draw_explosion_line(-x + _x, y + _y, -x + _x, -y + _y, color);
+        draw_explosion_line(-y + _y, x + _x, -y + _y, -x + _x, color);
 	}
 }
 
+// draw line function that also updates the ground state
+void draw_explosion_line(int x0, int y0, int x1, int y1, int color) {
+    bool is_steep = abs(y1 - y0) > abs(x1 - x0);
+
+    if(is_steep) {
+        swap(&x0, &y0);
+        swap(&x1, &y1);
+    }
+
+    if(x0 > x1) {
+        swap(&x0, &x1);
+        swap(&y0, &y1);
+    }
+
+    int deltax = x1 - x0;
+    int deltay = abs(y1 - y0);
+    int error = -(deltax / 2);
+    int y_step;
+    int y = y0;
+
+    if(y0 < y1) y_step = 1;
+    else y_step = -1;
+
+    for(int x = x0; x <= x1; ++x) {
+        if(is_steep) {
+            plot_pixel(y, x, color);
+            ground[y][x] = false;
+        } else {
+            plot_pixel(x, y, color);
+            ground[x][y] = false;
+        }
+
+        error = error + deltay;
+        if(error >= 0) {
+            y = y + y_step;
+            error = error - deltax;
+        }
+    }
+}
 
 //Draws a rectangle at (x,y) with radius r
 void draw_rect(int x, int y, int color, int radius) {
@@ -627,7 +687,7 @@ void draw_player(int x, int y, int player, int current_turn, int angle) {
         if(delta_turret < 0) {
             deltaX *= -1; // changes direction based on turret direction
         }
-        
+
         draw_line(x, y, x + deltaX, y + deltaY, color);
     }
 }
@@ -791,7 +851,7 @@ void wait_for_vsync() {
 void HEX_PS2(int key) {
 	volatile int * HEX3_HEX0_ptr = (int *)0xFF200020;
 	volatile int * HEX5_HEX4_ptr = (int *)0xFF200030;
-	
+
 	/* SEVEN_SEGMENT_DECODE_TABLE gives the on/off settings for all segments in
 	* a single 7-seg display in the DE1-SoC Computer, for the hex digits 0 - F
 	*/
