@@ -382,6 +382,10 @@ int main(void) {
             draw_timer(time);
             draw_rect(bullet.pos_x, bullet.pos_y, BLUE, 1);
         }
+        else if(game_state == shoot_wait) {
+            // plot explosion at current location of bullet
+            draw_circle(bullet.pos_x, bullet.pos_y, BLACK, 10);
+        }
         else if(game_state == game_over) {
             // checks which player won
             // displays congrats
