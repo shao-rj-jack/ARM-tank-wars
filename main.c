@@ -330,22 +330,13 @@ int main(void) {
 
         	if(bullet.pos_x < 0 || bullet.pos_x >= XMAX || bullet.pos_y >= YMAX) {
         		init_bullet = false;
+        		game_state = P1;
         	}
         	else if(bullet.pos_y >= 0) {
         		if(ground[bullet.pos_x][bullet.pos_y]) {
-	                // reform land
-	                // calculate new health
-	                // move players
-	                // check for winner
 	            	init_bullet = false;
+	            	game_state = shoot_wait;
 	            }
-	            // if(done and no winner) { // switch players
-	            //     current_player = P2;
-	            //     game_state = P2;
-	            // }
-	            // else if(winner) {
-	            //     game_state = game_over;
-	            // }
         	}
 
         	draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
@@ -376,22 +367,13 @@ int main(void) {
 
             if(bullet.pos_x < 0 || bullet.pos_x >= XMAX || bullet.pos_y >= YMAX) {
         		init_bullet = false;
+        		game_state = P1;
         	}
         	else if(bullet.pos_y >= 0) {
         		if(ground[bullet.pos_x][bullet.pos_y]) {
-	                // reform land
-	                // calculate new health
-	                // move players
-	                // check for winner
 	            	init_bullet = false;
+	            	game_state = shoot_wait;
 	            }
-	            // if(done and no winner) { // switch players
-	            //     current_player = P2;
-	            //     game_state = P2;
-	            // }
-	            // else if(winner) {
-	            //     game_state = game_over;
-	            // }
         	}
 
         	draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
