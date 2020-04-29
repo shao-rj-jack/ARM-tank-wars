@@ -6,9 +6,4 @@ to be loaded onto DE1-SoC board and used with PS/2 keyboard
 
 ## Tasks left to do
 
-- Animation of the projectile
-  - Animate the movement (Y Parabola + const X direction movement)
-- Animation of the explosions + removal of ground
-- Turn timer (drawing timer function implemented)
-- Finish game states to polish the game
-- Allow for aiming downwards
+- Animation of the explosions (circles not drawing correctly) + set ground state of site of explosion to false
