@@ -477,24 +477,24 @@ int calc_error(int x, int y, int r) {
 //Draws a filled circle at (x, y) with radius r
 //https://en.wikipedia.org/wiki/Midpoint_circle_algorithm
 void draw_circle(int _x, int _y, int color, int r) {
-	int x = r;
-	int y = 0;
+    int x = r;
+    int y = 0;
 
-	//Starting positions
-	draw_line(x + _x, y + _y, x + _x, -y + _y, color);
-	draw_line(y + _y, x + _x, y + _y, -x + _x, color);
-	draw_line(-x + _x, y + _y, -x + _x, -y + _y, color);
-	draw_line(-y + _y, x + _x, -y + _y, -x + _x, color);
+    //Starting positions
+    draw_line(x + _x, y + _y, x + _x, -y + _y, color);
+    draw_line(y + _x, x + _y, y + _x, -x + _y, color);
+    draw_line(-x + _x, y + _y, -x + _x, -y + _y, color);
+    draw_line(-y + _x, x + _y, -y + _x, -x + _y, color);
 
-	//Draw until circle slope switches
-	while(x >= y) {
-		if(calc_error(x, y, r) > 0) x--;
-		y++;
-		draw_line(x + _x, y + _y, x + _x, -y + _y, color);
-		draw_line(y + _y, x + _x, y + _y, -x + _x, color);
-		draw_line(-x + _x, y + _y, -x + _x, -y + _y, color);
-		draw_line(-y + _y, x + _x, -y + _y, -x + _x, color);
-	}
+    //Draw until circle slope switches
+    while(x >= y) {
+        if(calc_error(x, y, r) > 0) x--;
+        y++;
+        draw_line(x + _x, y + _y, x + _x, -y + _y, color);
+        draw_line(y + _x, x + _y, y + _x, -x + _y, color);
+        draw_line(-x + _x, y + _y, -x + _x, -y + _y, color);
+        draw_line(-y + _x, x + _y, -y + _x, -x + _y, color);
+    }
 }
 
 
