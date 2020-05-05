@@ -6,8 +6,9 @@ to be loaded onto DE1-SoC board and used with PS/2 keyboard
 
 ## TODO
 
-- animation of the explosions (circles not drawing correctly) + set ground state of site of explosion to false
 - update player status (location, health if needed) after explosion goes off
+- check for winners
+- polishing of game states
 
 ## How to Play
 
