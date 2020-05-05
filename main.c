@@ -343,7 +343,7 @@ int main(void) {
             draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
             draw_score(player_1.health, player_2.health, game_state);
             draw_timer(time);
-            draw_rect(bullet.pos_x, bullet.pos_y, RED, 1);
+            draw_rect(bullet.pos_x, bullet.pos_y, bullet.color, 1);
         }
         else if(game_state == shoot_P2) {
             // shoot projectile
@@ -380,7 +380,7 @@ int main(void) {
             draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
             draw_score(player_1.health, player_2.health, game_state);
             draw_timer(time);
-            draw_rect(bullet.pos_x, bullet.pos_y, BLUE, 1);
+            draw_rect(bullet.pos_x, bullet.pos_y, bullet.color, 1);
         }
         else if(game_state == shoot_wait) {
             // plot explosion at current location of bullet
@@ -416,6 +416,13 @@ int main(void) {
 void plot_pixel(int x, int y, short int line_color) {
 	if(x < 0 || x >= XMAX || y < 0 || y >= YMAX) return;
 	*(short int *)(pixel_buffer_start + (y << 10) + (x << 1)) = line_color;
+
+	// if drawn color is black (explosion), checks ground state of pixel and sets to false if necessary
+	if(line_color == BLACK) {
+	    if(ground[x][y]) {
+	        ground[x][y] = false;
+	    }
+	}
 }
 
 
