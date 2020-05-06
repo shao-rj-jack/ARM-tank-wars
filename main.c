@@ -223,7 +223,7 @@ int main(void) {
             }
 
             // check for ground around the player to change y position
-            while(ground[player_1.pos_x][player_1.pos_y + 2]) { // check if there is ground for the player to ascend (player radius is 3 to check 2 down)
+            while(ground[player_1.pos_x][player_1.pos_y + 2]) { // check if there is ground for the player to ascend (player radius is 3 so check 2 down)
                 player_1.pos_y -= 1; // move up in screen
             }
 
@@ -402,6 +402,42 @@ int main(void) {
                     game_state = game_over;
                 }
             }
+
+            // check if game_over flag is raised and draw accordingly
+            if(game_state == game_over) {
+                if(player_1.health == 0) {
+                    draw_player(player_2.pos_x, player_2.pos_y, P2, 0, player_2.angle);
+                }
+
+                if(player_2.health == 0) {
+                    draw_player(player_1.pos_x, player_1.pos_y, P1, 0, player_1.angle);
+                }
+            }
+            else {
+                // update player locations if needed
+                if(ground[player_1.pos_x][player_1.pos_y] && ground[player_2.pos_x][player_2.pos_y]) {
+                    // switch players if both players are on stable ground
+                    if(current_player == P1) {
+                        current_player = P2;
+                    }
+                    else if(current_player == P2) {
+                        current_player = P1;
+                    }
+                    game_state = current_player;
+                }
+                else if(!ground[player_1.pos_x][player_1.pos_y + 3]) {
+                    player_1.pos_y += 1;
+                }
+                else if(!ground[player_2.pos_x][player_2.pos_y + 3]) {
+                    player_2.pos_y += 1;
+                }
+
+                draw_player(player_1.pos_x, player_1.pos_y, P1, 0, player_1.angle);
+                draw_player(player_2.pos_x, player_2.pos_y, P2, 0, player_2.angle);
+            }
+
+            draw_score(player_1.health, player_2.health, current_player);
+            draw_timer(time);
         }
         else if(game_state == game_over) {
             // checks which player won
