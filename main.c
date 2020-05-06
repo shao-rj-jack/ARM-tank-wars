@@ -117,7 +117,6 @@ int main(void) {
 	bullet.vel_y = 0;
 	bullet.accel_y = 5;
 	bullet.color = BLACK;
-
 	bool init_bullet = false;
 
 	// setup timer
@@ -378,19 +377,37 @@ int main(void) {
 
         	draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
-            draw_score(player_1.health, player_2.health, game_state);
+            draw_score(player_1.health, player_2.health, current_player);
             draw_timer(time);
             draw_rect(bullet.pos_x, bullet.pos_y, bullet.color, 1);
         }
         else if(game_state == shoot_wait) {
             // plot explosion at current location of bullet
             draw_circle(bullet.pos_x, bullet.pos_y, BLACK, 10);
+
+            // check proximity of explosion to player_1
+            // 7 is used due to explosion having radius of 10 and players having raduis of 3
+            if(abs(bullet.pos_x - player_1.pos_x) < 7 && abs(bullet.pos_y - player_1.pos_y) < 7) {
+                player_1.health -= 1;
+                // check if health is 0
+                if(player_1.health == 0) {
+                    game_state = game_over;
+                }
+            }
+
+            // check proximity of explosion to player_2
+            if(abs(bullet.pos_x - player_2.pos_x) < 7 && abs(bullet.pos_y - player_2.pos_y) < 7) {
+                player_2.health -= 1;
+                if(player_2.health == 0) {
+                    game_state = game_over;
+                }
+            }
         }
         else if(game_state == game_over) {
             // checks which player won
             // displays congrats
 
-            if(keys.spacebar) { // press spacebar to reset game
+            if(keys.escape) { // press spacebar to reset game
                 game_state = game_pause;
             }
         }
