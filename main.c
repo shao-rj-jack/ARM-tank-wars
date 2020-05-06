@@ -201,7 +201,7 @@ int main(void) {
             }
             draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
-            draw_score(player_1.health, player_2.health, game_state);
+            draw_score(player_1.health, player_2.health, current_player);
             draw_timer(time);
         }
         else if(game_state == move_P1) {
@@ -252,7 +252,7 @@ int main(void) {
 
             draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
-            draw_score(player_1.health, player_2.health, P1);
+            draw_score(player_1.health, player_2.health, current_player);
             draw_timer(time);
         }
         else if(game_state == move_P2) {
@@ -303,7 +303,7 @@ int main(void) {
 
             draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
-            draw_score(player_1.health, player_2.health, game_state);
+            draw_score(player_1.health, player_2.health, current_player);
             draw_timer(time);
         }
         else if(game_state == shoot_P1) {
@@ -340,7 +340,7 @@ int main(void) {
 
         	draw_player(player_1.pos_x, player_1.pos_y, P1, current_player, player_1.angle);
             draw_player(player_2.pos_x, player_2.pos_y, P2, current_player, player_2.angle);
-            draw_score(player_1.health, player_2.health, game_state);
+            draw_score(player_1.health, player_2.health, current_player);
             draw_timer(time);
             draw_rect(bullet.pos_x, bullet.pos_y, bullet.color, 1);
         }
