@@ -390,9 +390,9 @@ int main(void) {
             	bullet.vel_y += bullet.accel_y;
         	}
 
-        	if(bullet.pos_x < 0 || bullet.pos_x >= XMAX || bullet.pos_y >= YMAX) {
+        	if(bullet.pos_x < 0 || bullet.pos_x >= XMAX || bullet.pos_y < 0 || bullet.pos_y >= YMAX) {
         		init_bullet = false;
-        		game_state = P1;
+        		game_state = P2;
         	}
         	else if(bullet.pos_y >= 0) {
         		if(ground[bullet.pos_x][bullet.pos_y]) {
@@ -427,7 +427,7 @@ int main(void) {
             	bullet.vel_y += bullet.accel_y;
         	}
 
-            if(bullet.pos_x < 0 || bullet.pos_x >= XMAX || bullet.pos_y >= YMAX) {
+            if(bullet.pos_x < 0 || bullet.pos_x >= XMAX || bullet.pos_y < 0 || bullet.pos_y >= YMAX) {
         		init_bullet = false;
         		game_state = P1;
         	}
@@ -499,7 +499,7 @@ int main(void) {
                 draw_player(player_2.pos_x, player_2.pos_y, P2, 0, player_2.angle);
             }
 
-            draw_score(player_1.health, player_2.health, current_player);
+            draw_score(player_1.health, player_2.health, 0);
             draw_timer(time);
         }
         else if(game_state == game_over) {
